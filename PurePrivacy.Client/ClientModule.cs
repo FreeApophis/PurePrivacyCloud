@@ -7,7 +7,7 @@ namespace PurePrivacy.Client
     {
         protected override void Load(ContainerBuilder builder)
         {
-
+            builder.RegisterType<BasicClient>().As<IClient>();
         }
     }
 }

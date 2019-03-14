@@ -1,7 +1,6 @@
 ﻿using Autofac;
-using PurePrivacy.Cloud;
 
-namespace PurePrivacyCloud
+namespace PurePrivacy.Cloud
 {
     class Program
     {
@@ -9,6 +8,7 @@ namespace PurePrivacyCloud
         {
             new CompositionRoot()
                 .Build()
+                .BeginLifetimeScope()
                 .Resolve<IApplication>()
                 .Run(args);
         }

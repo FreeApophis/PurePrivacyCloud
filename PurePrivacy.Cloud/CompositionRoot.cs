@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using PurePrivacy.Client;
+using PurePrivacy.Cloud.Applications;
 using PurePrivacy.Server;
 
 namespace PurePrivacy.Cloud
@@ -9,6 +10,8 @@ namespace PurePrivacy.Cloud
         public IContainer Build()
         {
             var builder = new ContainerBuilder();
+
+            builder.RegisterType<CloudApplication>().As<IApplication>();
 
             builder.RegisterModule(new ClientModule());
             builder.RegisterModule(new ServerModule());
