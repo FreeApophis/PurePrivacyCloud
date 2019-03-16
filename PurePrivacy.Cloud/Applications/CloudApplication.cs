@@ -1,37 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
-using MsgPack.Serialization;
 using PurePrivacy.Client;
 using PurePrivacy.Server;
-using Path = PurePrivacy.Core.Path;
 
 namespace PurePrivacy.Cloud.Applications
 {
-    public enum MessageType { MessageA, MessageB, MessageC }
-
-    public class MessageHeader
-    {
-        public MessageType MessageType { get; set; }
-    }
-
-    public class TestA
-    {
-        public string NothingToSee { get; set; }
-    }
-
-    public class TestB
-    {
-        public int Something { get; set; }
-    }
-
-    public class TestC
-    {
-        public string See { get; set; }
-    }
     class CloudApplication : IApplication
     {
         private readonly IEnumerable<IBlockServer> _blockServers;
@@ -52,6 +27,9 @@ namespace PurePrivacy.Cloud.Applications
             {
                 thread.Start();
             }
+
+            Thread.Sleep(2000);
+            _client.Test();
 
             //using (FileStream stream = File.Open(@"c:\image.bmp", FileMode.Open))
             //{

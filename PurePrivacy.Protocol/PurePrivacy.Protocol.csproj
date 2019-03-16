@@ -3,5 +3,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MessagePack">
+      <HintPath>..\..\..\..\Users\bruderer\.nuget\packages\messagepack\1.7.3.4\lib\netstandard2.0\MessagePack.dll</HintPath>
+    </Reference>
+  </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

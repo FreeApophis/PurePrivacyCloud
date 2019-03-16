@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Core;
 
 namespace PurePrivacy.Server
 {
@@ -13,7 +14,11 @@ namespace PurePrivacy.Server
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.Register(context => new BlockServer(GetNextPort())).As<IBlockServer>();
+            builder.RegisterType<BlockServer>().As<IBlockServer>().WithParameter(
+                new ResolvedParameter(
+                    (parameter, context) => parameter.Name == "port",
+                    (parameter, context) => GetNextPort())
+                );
         }
     }
 }

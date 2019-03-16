@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace PurePrivacy.Client
@@ -13,5 +12,6 @@ namespace PurePrivacy.Client
         Task DeleteFile(Core.Path filePath);
         Task<Stream> GetFile(Core.Path filePath);
 
+        void Test();
     }
 }

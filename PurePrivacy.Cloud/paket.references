@@ -1,1 +1,3 @@
 Autofac
+Microsoft.Extensions.Logging
+Microsoft.Extensions.Logging.Console

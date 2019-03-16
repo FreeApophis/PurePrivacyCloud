@@ -1,4 +1,7 @@
 source https://nuget.org/api/v2
 
 nuget Autofac
-nuget MsgPack.Cli
+nuget MessagePack
+nuget Funcky
+nuget Microsoft.Extensions.Logging
+nuget Microsoft.Extensions.Logging.Console
