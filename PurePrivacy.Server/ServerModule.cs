@@ -29,6 +29,8 @@ namespace PurePrivacy.Server
                     (parameter, context) => GetNextPort())
             );
 
+            builder.RegisterType<DictionaryBlockStorage>().As<IBlockStorage>().SingleInstance();
+
             // Register all Handlers
             builder.RegisterAssemblyTypes(ThisAssembly)
                 .Where(t => typeof(MessageHandler.MessageHandler).IsAssignableFrom(t))

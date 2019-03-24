@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using Microsoft.Extensions.Logging;
+using PurePrivacy.Core;
 using PurePrivacy.Protocol;
 using PurePrivacy.Protocol.Request;
 using PurePrivacy.Protocol.Response;
@@ -47,9 +48,9 @@ namespace PurePrivacy.Client
 
                 IProtocolResponse response = GetNextResponse(stream, nextMessage.NextMessageType);
 
-                if (_responses.ContainsKey(response.MessageId))
+                if (_responses.ContainsKey(nextMessage.MessageId))
                 {
-                    _responses[response.MessageId].Add(response);
+                    _responses[nextMessage.MessageId].Add(response);
                 }
                 else
                 {
@@ -63,25 +64,23 @@ namespace PurePrivacy.Client
             switch (messageType)
             {
                 case MessageType.Invalid:
-                    break;
+                    throw new ArgumentException(nameof(messageType));
                 case MessageType.StatusRequest:
                     break;
                 case MessageType.StatusResponse:
-                    _logger.Log(LogLevel.Warning, "Deserialize Status Response");
                     return MessagePackSerializer.Deserialize<StatusResponse>(stream, true);
                 case MessageType.LoginRequest:
                     break;
                 case MessageType.LoginResponse:
-                    _logger.Log(LogLevel.Warning, "Deserialize Login Response");
                     return MessagePackSerializer.Deserialize<LoginResponse>(stream, true);
                 case MessageType.PutBlockRequest:
                     break;
                 case MessageType.PutBlockResponse:
-                    break;
+                    return MessagePackSerializer.Deserialize<PutBlockResponse>(stream, true);
                 case MessageType.GetBlockRequest:
                     break;
                 case MessageType.GetBlockResponse:
-                    break;
+                    return MessagePackSerializer.Deserialize<GetBlockResponse>(stream, true);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(messageType), messageType, null);
             }
@@ -91,74 +90,90 @@ namespace PurePrivacy.Client
 
         public async Task<bool> Login(string userName)
         {
-            var messageId = _messageId++;
-            await SendNextMessageHeader(MessageType.LoginRequest);
-            _responses[messageId] = new BlockingCollection<IProtocolResponse>();
-            MessagePackSerializer.Serialize(_tcpClient.GetStream(), new LoginRequest { MessageId = messageId, UserName = userName });
-
-            return WaitLoginReply(messageId);
+            return await SendMessage(new LoginRequest { UserName = userName }, LoginReplyContinuation);
         }
 
-        private bool WaitLoginReply(int messageId)
+        private bool LoginReplyContinuation(int messageId)
         {
-            return _responses[messageId].Take() is LoginResponse loginResponse && loginResponse.Success;
+            if (_responses[messageId].Take() is LoginResponse loginResponse)
+            {
+                RemoveContinuation(messageId);
+
+                return loginResponse.Success;
+            }
+
+            throw new ArgumentException();
         }
 
         public async Task PutBlock(List<byte> key, List<byte> block)
         {
-            await SendNextMessageHeader(MessageType.PutBlockRequest);
-            await MessagePackSerializer.SerializeAsync(_tcpClient.GetStream(), new PutBlockRequest { Key = key, Block = block });
-
-            await WaitPutBlockReply(key);
-
+            await SendMessage(new PutBlockRequest { Key = key, Block = block }, PutBlockContinuation);
         }
 
-        private async Task WaitPutBlockReply(List<byte> key)
+        private Unit PutBlockContinuation(int messageId)
         {
-            throw new System.NotImplementedException();
+            _responses[messageId].Take();
+
+            RemoveContinuation(messageId);
+
+            return new Unit();
         }
 
         public async Task<List<byte>> GetBlock(List<byte> key)
         {
-            await SendNextMessageHeader(MessageType.GetBlockRequest);
-            await MessagePackSerializer.SerializeAsync(_tcpClient.GetStream(), new GetBlockRequest { Key = key });
-
-            return await WaitGetBlockReply(key);
+            return await SendMessage(new GetBlockRequest { Key = key }, GetBlockContinuation);
         }
 
-        public void Test()
+        private List<byte> GetBlockContinuation(int messageId)
         {
-            throw new NotImplementedException();
+
+            if (_responses[messageId].Take() is GetBlockResponse getBlockResponse)
+            {
+                RemoveContinuation(messageId);
+
+                return getBlockResponse.Block;
+            }
+
+            throw new ArgumentException();
+        }
+
+        private void RemoveContinuation(int messageId)
+        {
+            _responses.TryRemove(messageId);
         }
 
         public async Task<StatusResponse> GetStatus()
         {
             var challenge = _random.Next();
-            var messageId = _messageId++;
 
-            await SendNextMessageHeader(MessageType.StatusRequest);
+            return await SendMessage(new StatusRequest { Challenge = challenge }, StatusReplyContinuation);
+        }
+
+        private StatusResponse StatusReplyContinuation(int messageId)
+        {
+            if (_responses[messageId].Take() is StatusResponse statusResponse)
+            {
+                RemoveContinuation(messageId);
+
+                return statusResponse;
+            }
+            throw new ArgumentException();
+        }
+
+        protected async Task<TWait> SendMessage<TResponse, TWait>(TResponse response, Func<int, TWait> continuation) where TResponse : class, IProtocolMessage
+        {
+            var messageId = NextMessageId();
+            var stream = _tcpClient.GetStream();
 
             _responses[messageId] = new BlockingCollection<IProtocolResponse>();
-            await MessagePackSerializer.SerializeAsync(_tcpClient.GetStream(), new StatusRequest { MessageId = messageId, Challenge = challenge });
 
-            return WaitGetStatusReply(messageId);
+            await MessagePackSerializer.SerializeAsync(stream, new MessageHeader { MessageId = messageId, NextMessageType = response.MessageType });
+            await MessagePackSerializer.SerializeAsync(stream, response);
+
+            return continuation(messageId);
         }
 
-        private StatusResponse WaitGetStatusReply(int messageId)
-        {
-            return _responses[messageId].Take() as StatusResponse;
-        }
-
-        private async Task<List<byte>> WaitGetBlockReply(List<byte> key)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        private async Task SendNextMessageHeader(MessageType messageType)
-        {
-            await MessagePackSerializer.SerializeAsync(_tcpClient.GetStream(),
-                new MessageHeader { NextMessageType = messageType });
-        }
+        private int NextMessageId() => _messageId++;
 
     }
 }

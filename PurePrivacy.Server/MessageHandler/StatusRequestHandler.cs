@@ -21,13 +21,13 @@ namespace PurePrivacy.Server.MessageHandler
         }
 
 
-        public override async Task HandleMessage(ConnectionInfo connectionInfo)
+        public override async Task HandleMessage(MessageHeader messageHeader, ConnectionInfo connectionInfo)
         {
             _logger.Log(LogLevel.Information, "Handle Status Request");
 
             var statusRequest = MessagePackSerializer.Deserialize<StatusRequest>(connectionInfo.Stream, true);
 
-            await SendResponse<StatusResponse>(connectionInfo, new StatusResponse { MessageId = statusRequest.MessageId, Response = 1337 });
+            await SendResponse<StatusResponse>(messageHeader, connectionInfo, new StatusResponse { Response = 10000 - statusRequest.Challenge });
         }
     }
 }

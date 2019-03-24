@@ -10,9 +10,6 @@ namespace PurePrivacy.Protocol.Request
         public MessageType MessageType { get; } = MessageType.GetBlockRequest;
 
         [Key(0)]
-        public int MessageId { get; set; }
-
-        [Key(1)]
         public List<byte> Key { get; set; }
 
     }

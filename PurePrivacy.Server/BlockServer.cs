@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using PurePrivacy.Core;
 using Autofac.Features.Indexed;
 using Funcky.Monads;
@@ -93,10 +92,7 @@ namespace PurePrivacy.Server
 
             Option<MessageHandler.MessageHandler> handler = _messageHandlers.TryGetValue(nextMessage.NextMessageType);
 
-            handler.Match(
-                some: h => h.HandleMessage(connectionInfo),
-                none: Task.Run(() => false)
-                );
+            handler.Match(some: h => h, none: new NullHandler()).HandleMessage(nextMessage, connectionInfo);
         }
 
         private void HandleNewConnection(Socket serverSocket)
