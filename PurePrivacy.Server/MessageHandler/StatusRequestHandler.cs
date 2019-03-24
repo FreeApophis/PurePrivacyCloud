@@ -27,7 +27,7 @@ namespace PurePrivacy.Server.MessageHandler
 
             var statusRequest = MessagePackSerializer.Deserialize<StatusRequest>(connectionInfo.Stream, true);
 
-            await SendResponse(connectionInfo, new StatusResponse { MessageId = statusRequest.MessageId, Response = 1337 });
+            await SendResponse<StatusResponse>(connectionInfo, new StatusResponse { MessageId = statusRequest.MessageId, Response = 1337 });
         }
     }
 }

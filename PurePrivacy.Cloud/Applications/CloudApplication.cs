@@ -42,8 +42,8 @@ namespace PurePrivacy.Cloud.Applications
         {
             await _client.Connect(IPAddress.Parse("127.0.0.1"), 1982);
 
-            //bool success = await _client.Login("apophis@apophis.ch");
-            //Console.WriteLine($"Login  {(success ? "successful" : "unsuccessful")}");
+            bool success = await _client.Login("apophis@apophis.ch");
+            Console.WriteLine($"Login  {(success ? "successful" : "unsuccessful")}");
 
             StatusResponse response = await _client.GetStatus();
             Console.WriteLine($"We got a response to MessageID : {response.MessageId} with {response.Response}");

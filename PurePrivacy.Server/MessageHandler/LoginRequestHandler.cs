@@ -27,7 +27,7 @@ namespace PurePrivacy.Server.MessageHandler
 
             _logger.Log(LogLevel.Information, $"Login Request with: {loginRequest.UserName}");
 
-            await SendResponse(connectionInfo, new LoginResponse { MessageId = loginRequest.MessageId, Success = true });
+            await SendResponse<LoginResponse>(connectionInfo, new LoginResponse { MessageId = loginRequest.MessageId, Success = true });
         }
     }
 }
