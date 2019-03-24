@@ -2,14 +2,20 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
+using PurePrivacy.Core;
+using Autofac.Features.Indexed;
+using Funcky.Monads;
 using MessagePack;
 using Microsoft.Extensions.Logging;
 using PurePrivacy.Protocol;
+using PurePrivacy.Server.MessageHandler;
 
 namespace PurePrivacy.Server
 {
     public class BlockServer : IBlockServer
     {
+        private readonly IIndex<MessageType, MessageHandler.MessageHandler> _messageHandlers;
         private readonly ILogger _logger;
         private IPEndPoint _localEndPoint;
         private bool _connected;
@@ -17,8 +23,9 @@ namespace PurePrivacy.Server
         public IPAddress IpAddress { get; set; } = IPAddress.Any;
         public IDictionary<Socket, ConnectionInfo> Connections { get; } = new Dictionary<Socket, ConnectionInfo>();
 
-        public BlockServer(ILogger logger, int port)
+        public BlockServer(IIndex<MessageType, MessageHandler.MessageHandler> messageHandlers, ILogger logger, int port)
         {
+            _messageHandlers = messageHandlers;
             _logger = logger;
             Port = port;
         }
@@ -82,21 +89,14 @@ namespace PurePrivacy.Server
         private void HandleIncomingMessage(ConnectionInfo connectionInfo)
         {
             _logger.Log(LogLevel.Information, Port, "Message received");
-            var nextMessage = MessagePackSerializer.Deserialize<NextMessage>(connectionInfo.Stream, true);
+            var nextMessage = MessagePackSerializer.Deserialize<MessageHeader>(connectionInfo.Stream, true);
 
-            switch (nextMessage.MessageType)
-            {
-                case MessageType.DummyRequest:
-                    var dummyRequest = MessagePackSerializer.Deserialize<DummyRequest>(connectionInfo.Stream, true);
-                    _logger.Log(LogLevel.Information, Port, "Dummy Request");
-                    break;
-                case MessageType.LoginRequest:
-                    var loginRequest = MessagePackSerializer.Deserialize<LoginRequest>(connectionInfo.Stream, true);
-                    _logger.Log(LogLevel.Information, Port, $"Login Request with: {loginRequest.UserName}");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(NextMessage));
-            }
+            Option<MessageHandler.MessageHandler> handler = _messageHandlers.TryGetValue(nextMessage.NextMessageType);
+
+            handler.Match(
+                some: h => h.HandleMessage(connectionInfo),
+                none: Task.Run(() => false)
+                );
         }
 
         private void HandleNewConnection(Socket serverSocket)

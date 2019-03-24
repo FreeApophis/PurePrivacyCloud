@@ -2,7 +2,15 @@
 {
     public enum MessageType
     {
-        DummyRequest,
+        Invalid,
+
+        StatusRequest,
+        StatusResponse,
         LoginRequest,
+        LoginResponse,
+        PutBlockRequest,
+        PutBlockResponse,
+        GetBlockRequest,
+        GetBlockResponse
     }
 }

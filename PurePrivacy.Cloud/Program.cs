@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using PurePrivacy.Cloud.Applications;
 
 namespace PurePrivacy.Cloud
 {
@@ -11,6 +12,10 @@ namespace PurePrivacy.Cloud
                 .BeginLifetimeScope()
                 .Resolve<IApplication>()
                 .Run(args);
+        }
+
+        private static void DoWork()
+        {
         }
     }
 }

@@ -1,17 +1,18 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using PurePrivacy.Protocol.Response;
 
 namespace PurePrivacy.Client
 {
     public interface IClient
     {
-        Task CreateDirectory(Core.Path directoryPath);
-        Task DeleteDirectory(Core.Path directoryPath);
+        Task Connect(IPAddress ipAddress, int port);
+        Task<bool> Login(string userName);
 
-        Task PutFile(Stream file, Core.Path filePath);
-        Task DeleteFile(Core.Path filePath);
-        Task<Stream> GetFile(Core.Path filePath);
+        Task PutBlock(List<byte> key, List<byte> value);
+        Task<List<byte>> GetBlock(List<byte> key);
 
-        void Test();
+        Task<StatusResponse> GetStatus();
     }
 }

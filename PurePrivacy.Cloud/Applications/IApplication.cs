@@ -1,4 +1,4 @@
-﻿namespace PurePrivacy.Cloud
+﻿namespace PurePrivacy.Cloud.Applications
 {
     internal interface IApplication
     {

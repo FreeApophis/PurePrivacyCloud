@@ -15,6 +15,7 @@ namespace PurePrivacy.Cloud
             RegisterLogger(builder);
 
             builder.RegisterType<CloudApplication>().As<IApplication>();
+            //builder.RegisterType<ClientApplication>().As<IApplication>();
 
             builder.RegisterModule(new ClientModule());
             builder.RegisterModule(new ServerModule());

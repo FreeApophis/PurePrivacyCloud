@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using PurePrivacy.Client;
+using PurePrivacy.Protocol.Response;
 using PurePrivacy.Server;
 
 namespace PurePrivacy.Cloud.Applications
@@ -29,16 +32,21 @@ namespace PurePrivacy.Cloud.Applications
             }
 
             Thread.Sleep(2000);
-            _client.Test();
 
-            //using (FileStream stream = File.Open(@"c:\image.bmp", FileMode.Open))
-            //{
-            //    _client.PutFile(stream, new Path("image.bmp"));
-            //}
-
-            //_client.GetFile(new Path("image.bmp"));
+            ExecuteClientCommandsAsync().Wait();
 
             while (true) { Thread.Sleep(100); }
+        }
+
+        private async Task ExecuteClientCommandsAsync()
+        {
+            await _client.Connect(IPAddress.Parse("127.0.0.1"), 1982);
+
+            //bool success = await _client.Login("apophis@apophis.ch");
+            //Console.WriteLine($"Login  {(success ? "successful" : "unsuccessful")}");
+
+            StatusResponse response = await _client.GetStatus();
+            Console.WriteLine($"We got a response to MessageID : {response.MessageId} with {response.Response}");
         }
     }
 }

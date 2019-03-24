@@ -5,3 +5,4 @@ nuget MessagePack
 nuget Funcky
 nuget Microsoft.Extensions.Logging
 nuget Microsoft.Extensions.Logging.Console
+nuget JetBrains.Annotations
